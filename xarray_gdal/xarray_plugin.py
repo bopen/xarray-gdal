@@ -1,6 +1,7 @@
 import os.path
 import typing as T
 
+import pyproj
 import rasterio
 import rioxarray
 import xarray as xr
@@ -57,11 +58,18 @@ class GdalRawBackend(xr.backends.common.BackendEntrypoint):
         mask_and_scale: T.Optional[bool] = None,
     ) -> xr.Dataset:
         with rasterio.open(filename_or_obj) as rds:
-            data_vars = {
-                f"band{i}": (("y", "x"), rds.read(i), {"grid_mapping": "spatial_ref"})
-                for i in rds.indexes
-            }
-            data_vars["spatial_ref"] = ((), 0, {"grid_mapping_name": "dummy"})
+            data_vars = {}
+            for i in rds.indexes:
+                data_var_attrs = {
+                    "grid_mapping": "spatial_ref",
+                    "scale_factor": rds.scales[i - 1],
+                    "add_offset": rds.offsets[i - 1],
+                    "_FillValue": rds.nodatavals[i - 1],
+                }
+                data_vars[f"band{i}"] = (("y", "x"), rds.read(i), data_var_attrs)
+
+            spatial_ref_attrs = pyproj.CRS.from_user_input(rds.crs).to_cf()
+            data_vars["spatial_ref"] = ((), 0, spatial_ref_attrs)
 
             coords = {
                 "y": ("y", [rds.xy(j, 0)[1] for j in range(rds.height)]),
