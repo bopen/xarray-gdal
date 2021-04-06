@@ -8,7 +8,7 @@ fix-code-style:
 	isort .
 
 unit-test:
-	python -m pytest --cov=. --cov-report=$(COV_REPORT) .
+	python -m pytest -v --cov=. --cov-report=$(COV_REPORT) .
 
 code-quality:
 	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
