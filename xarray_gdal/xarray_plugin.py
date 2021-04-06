@@ -62,7 +62,13 @@ class GdalRawBackend(xr.backends.common.BackendEntrypoint):
                 for i in rds.indexes
             }
             data_vars["spatial_ref"] = ((), 0, {"grid_mapping_name": "dummy"})
-            ds = xr.Dataset(data_vars=data_vars,)
+
+            coords = {
+                "y": ("y", [rds.xy(j, 0)[1] for j in range(rds.height)]),
+                "x": ("x", [rds.xy(0, i)[0] for i in range(rds.width)]),
+            }
+
+            ds = xr.Dataset(data_vars=data_vars, coords=coords)
 
             decoded_ds = xr.decode_cf(
                 ds,
