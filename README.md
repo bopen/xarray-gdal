@@ -1,2 +1,2 @@
 # xarray-gdal
-GDAL plugin for Xarray
+Experimental GDAL plugin for Xarray (not intended for public release).
