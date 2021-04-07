@@ -1,16 +1,14 @@
 import os.path
 
-import pytest
 import xarray as xr
 
 HERE = os.path.dirname(__file__)
 
 
-@pytest.mark.parametrize("engine", ["gdal-beta", "gdal-raw"])
-def test_xarray_open_dataset(engine):
+def test_xarray_open_dataset():
     cog_file = os.path.join(HERE, "sample.tif")
 
-    ds = xr.open_dataset(cog_file, engine=engine)
+    ds = xr.open_dataset(cog_file, engine="gdal-raw")
 
     assert isinstance(ds, xr.Dataset)
     assert "band1" in ds.data_vars
@@ -20,12 +18,12 @@ def test_xarray_open_dataset(engine):
     assert "spatial_ref" in ds.data_vars
     assert "spatial_ref" not in ds.coords
 
-    ds.to_netcdf(f"test-{engine}-coordinates.nc")
+    ds.to_netcdf("test-coordinates.nc")
 
-    ds = xr.open_dataset(cog_file, engine=engine, decode_coords="all")
+    ds = xr.open_dataset(cog_file, engine="gdal-raw", decode_coords="all")
 
     assert "grid_mapping" in ds.data_vars["band1"].encoding
     assert "spatial_ref" not in ds.data_vars
     assert "spatial_ref" in ds.coords
 
-    ds.to_netcdf(f"test-{engine}-all.nc")
+    ds.to_netcdf("test-all.nc")
